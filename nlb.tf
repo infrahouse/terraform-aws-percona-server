@@ -23,6 +23,10 @@ resource "aws_lb_target_group" "write" {
   vpc_id      = data.aws_vpc.selected.id
   target_type = "instance"
 
+  # Faster failover: default is 300s, but for database master failover
+  # we want quick removal of failed masters from the load balancer
+  deregistration_delay = 30
+
   health_check {
     enabled             = true
     protocol            = "TCP"
@@ -52,6 +56,10 @@ resource "aws_lb_target_group" "read" {
   protocol    = "TCP"
   vpc_id      = data.aws_vpc.selected.id
   target_type = "instance"
+
+  # Faster failover: default is 300s, but for database replicas
+  # we want quick removal of failed instances from the load balancer
+  deregistration_delay = 30
 
   health_check {
     enabled             = true

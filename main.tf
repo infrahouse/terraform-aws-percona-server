@@ -105,6 +105,12 @@ resource "aws_autoscaling_group" "percona" {
     propagate_at_launch = true
   }
 
+  tag {
+    key                 = "module_version"
+    value               = local.module_version
+    propagate_at_launch = false
+  }
+
   dynamic "tag" {
     for_each = local.common_tags
     content {

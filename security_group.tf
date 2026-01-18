@@ -18,7 +18,7 @@ resource "aws_security_group" "percona" {
 # Allow MySQL traffic within the security group (inter-node communication)
 resource "aws_vpc_security_group_ingress_rule" "mysql_internal" {
   security_group_id            = aws_security_group.percona.id
-  description                  = "MySQL traffic between cluster nodes"
+  description                  = "MySQL traffic between Percona cluster nodes (replication and Orchestrator discovery)"
   from_port                    = 3306
   to_port                      = 3306
   ip_protocol                  = "tcp"
@@ -72,7 +72,7 @@ resource "aws_vpc_security_group_ingress_rule" "mysql_vpc" {
 # Allow Orchestrator Raft traffic within the security group
 resource "aws_vpc_security_group_ingress_rule" "orchestrator_raft" {
   security_group_id            = aws_security_group.percona.id
-  description                  = "Orchestrator Raft consensus traffic"
+  description                  = "Orchestrator Raft consensus (port 10008) for leader election and topology management"
   from_port                    = 10008
   to_port                      = 10008
   ip_protocol                  = "tcp"
@@ -84,7 +84,7 @@ resource "aws_vpc_security_group_ingress_rule" "orchestrator_raft" {
 # Allow Orchestrator HTTP traffic within the security group
 resource "aws_vpc_security_group_ingress_rule" "orchestrator_http" {
   security_group_id            = aws_security_group.percona.id
-  description                  = "Orchestrator HTTP traffic"
+  description                  = "Orchestrator HTTP API (port 3000) for cluster management and failover coordination"
   from_port                    = 3000
   to_port                      = 3000
   ip_protocol                  = "tcp"
@@ -96,7 +96,7 @@ resource "aws_vpc_security_group_ingress_rule" "orchestrator_http" {
 # Allow ICMP within VPC for troubleshooting
 resource "aws_vpc_security_group_ingress_rule" "icmp" {
   security_group_id = aws_security_group.percona.id
-  description       = "ICMP from VPC"
+  description       = "ICMP from VPC for network troubleshooting (ping, traceroute)"
   from_port         = -1
   to_port           = -1
   ip_protocol       = "icmp"
