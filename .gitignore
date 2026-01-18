@@ -1,0 +1,7 @@
+/pytest-*-output.log
+/.venv/
+/.idea/
+/tf-apply-trace.txt
+/.claude/*.local.json
+/.terraform/
+__pycache__
