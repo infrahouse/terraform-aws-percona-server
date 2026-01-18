@@ -1,5 +1,6 @@
 locals {
-  name_prefix = "percona-${var.cluster_id}"
+  module_version = "0.1.0"
+  name_prefix    = "percona-${var.cluster_id}"
 
   lts_codenames = ["noble"]
 
