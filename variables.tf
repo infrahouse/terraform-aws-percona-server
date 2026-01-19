@@ -110,3 +110,76 @@ variable "client_cidrs" {
   type        = list(string)
   default     = []
 }
+
+variable "puppet_role" {
+  description = <<-EOT
+    Puppet role for the Percona instances. Passed as a puppet fact.
+    Must contain only lowercase letters, numbers, and underscores (no hyphens).
+  EOT
+  type        = string
+  default     = "percona_server"
+
+  validation {
+    condition     = can(regex("^[a-z0-9_]+$", var.puppet_role))
+    error_message = "puppet_role must contain only lowercase letters, numbers, and underscores (no hyphens). Got: ${var.puppet_role}"
+  }
+}
+
+variable "puppet_debug_logging" {
+  description = "Enable Puppet debug logging during bootstrap."
+  type        = bool
+  default     = false
+}
+
+variable "puppet_environmentpath" {
+  description = "A path for directory environments."
+  type        = string
+  default     = "{root_directory}/environments"
+}
+
+variable "puppet_hiera_config_path" {
+  description = "Path to hiera configuration file."
+  type        = string
+  default     = "{root_directory}/environments/{environment}/hiera.yaml"
+}
+
+variable "puppet_manifest" {
+  description = "Path to puppet manifest. By default ih-puppet will apply {root_directory}/environments/{environment}/manifests/site.pp."
+  type        = string
+  default     = null
+}
+
+variable "puppet_module_path" {
+  description = "Path to common puppet modules."
+  type        = string
+  default     = "{root_directory}/environments/{environment}/modules:{root_directory}/modules"
+}
+
+variable "puppet_root_directory" {
+  description = "Path where the puppet code is hosted."
+  type        = string
+  default     = "/opt/puppet-code"
+}
+
+variable "puppet_custom_facts" {
+  description = <<-EOF
+    A map of custom puppet facts. The module uses deep merge to combine user facts
+    with module-managed facts. User-provided values take precedence on conflicts.
+
+    Module automatically provides percona-specific facts for cluster configuration.
+  EOF
+  type        = any
+  default     = {}
+}
+
+variable "extra_packages" {
+  description = "Additional packages to install during instance bootstrap."
+  type        = list(string)
+  default     = []
+}
+
+variable "key_name" {
+  description = "Name of the EC2 key pair for SSH access to instances. If null, no key pair is assigned."
+  type        = string
+  default     = null
+}

@@ -3,6 +3,8 @@ resource "aws_launch_template" "percona" {
   name_prefix   = "${local.name_prefix}-"
   image_id      = local.ami_id
   instance_type = var.instance_type
+  key_name      = var.key_name
+  user_data     = module.cloud_init.userdata
 
   iam_instance_profile {
     name = module.instance_profile.instance_profile_name
@@ -88,7 +90,7 @@ resource "aws_autoscaling_group" "percona" {
 
   launch_template {
     id      = aws_launch_template.percona.id
-    version = "$Latest"
+    version = aws_launch_template.percona.latest_version
   }
 
   instance_refresh {
@@ -97,18 +99,13 @@ resource "aws_autoscaling_group" "percona" {
       min_healthy_percentage = 100
       max_healthy_percentage = 101 # Launch one replacement before terminating old
     }
+    triggers = ["tag"]
   }
 
   tag {
     key                 = "Name"
     value               = "${local.name_prefix}-instance"
     propagate_at_launch = true
-  }
-
-  tag {
-    key                 = "module_version"
-    value               = local.module_version
-    propagate_at_launch = false
   }
 
   dynamic "tag" {

@@ -82,3 +82,13 @@ output "luks_passphrase_secret_arn" {
   description = "ARN of the Secrets Manager secret containing LUKS passphrase (only for instance_store)"
   value       = local.use_instance_store ? module.luks_passphrase[0].secret_arn : null
 }
+
+output "mysql_credentials_secret_arn" {
+  description = "ARN of the Secrets Manager secret containing MySQL user credentials"
+  value       = module.mysql_credentials.secret_arn
+}
+
+output "mysql_credentials_secret_name" {
+  description = "Name of the Secrets Manager secret containing MySQL user credentials"
+  value       = module.mysql_credentials.secret_name
+}
