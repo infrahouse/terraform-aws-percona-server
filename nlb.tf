@@ -10,7 +10,8 @@ resource "aws_lb" "percona" {
   tags = merge(
     local.common_tags,
     {
-      Name = "${local.name_prefix}-nlb"
+      Name           = "${local.name_prefix}-nlb"
+      module_version = local.module_version
     }
   )
 }

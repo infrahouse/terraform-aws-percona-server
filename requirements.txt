@@ -1,8 +1,5 @@
-pytest-infrahouse ~= 0.22
-infrahouse-core ~= 0.17
-
-# Release tools
-bumpversion ~= 0.6
+pytest-infrahouse ~= 0.23
+infrahouse-core ~= 0.19
 
 # Documentation dependencies
 mkdocs-material ~= 9.7
