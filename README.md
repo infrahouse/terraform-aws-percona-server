@@ -99,7 +99,7 @@ While AWS RDS provides a managed MySQL solution, self-managed Percona Server off
 ```hcl
 module "percona" {
   source  = "infrahouse/percona-server/aws"
-  version = "0.1.0"
+  version = "0.2.0"
 
   cluster_id     = "my-database"
   environment    = "production"
@@ -125,7 +125,7 @@ output "reader_endpoint" {
 ```hcl
 module "percona" {
   source  = "infrahouse/percona-server/aws"
-  version = "0.1.0"
+  version = "0.2.0"
 
   # Required
   cluster_id   = "myapp-db"
@@ -147,7 +147,7 @@ For workloads requiring maximum disk performance, use instance types with NVMe s
 ```hcl
 module "percona" {
   source  = "infrahouse/percona-server/aws"
-  version = "0.1.0"
+  version = "0.2.0"
 
   cluster_id    = "high-iops-db"
   environment   = "production"
@@ -168,7 +168,7 @@ module "percona" {
 ```hcl
 module "percona" {
   source  = "infrahouse/percona-server/aws"
-  version = "0.1.0"
+  version = "0.2.0"
 
   cluster_id   = "custom-db"
   environment  = "production"

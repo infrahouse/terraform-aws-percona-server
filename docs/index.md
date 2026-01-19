@@ -19,7 +19,7 @@ Terraform module for deploying a highly available Percona Server (MySQL 8.0) clu
 ```hcl
 module "percona" {
   source  = "infrahouse/percona-server/aws"
-  version = "0.1.0"
+  version = "0.2.0"
 
   cluster_id     = "my-database"
   environment    = "production"
