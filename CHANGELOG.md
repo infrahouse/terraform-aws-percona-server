@@ -2,6 +2,17 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.2.0] - 2026-01-19
+
+### Bug Fixes
+
+- Address PR review feedback for infrastructure improvements
+
+### Features
+
+- Implement core infrastructure for Percona Server cluster
+- Complete Infrastructure and Puppet Integration epics
+
 ## [Unreleased]
 
 ### Added
