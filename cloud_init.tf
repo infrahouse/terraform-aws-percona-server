@@ -1,7 +1,7 @@
 # Cloud-init configuration for Percona instances
 module "cloud_init" {
   source  = "registry.infrahouse.com/infrahouse/cloud-init/aws"
-  version = "2.2.2"
+  version = "2.2.3"
 
   environment     = var.environment
   role            = var.puppet_role
