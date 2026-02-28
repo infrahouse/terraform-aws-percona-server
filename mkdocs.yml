@@ -36,7 +36,6 @@ theme:
 
 nav:
   - Home: index.md
-  - Architecture: architecture.md
 
 markdown_extensions:
   - pymdownx.highlight:
@@ -62,7 +61,6 @@ markdown_extensions:
 
 plugins:
   - search
-  - glightbox
   - minify:
       minify_html: true
 
