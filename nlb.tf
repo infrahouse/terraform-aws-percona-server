@@ -5,7 +5,8 @@ resource "aws_lb" "percona" {
   load_balancer_type = "network"
   subnets            = var.subnet_ids
 
-  enable_deletion_protection = false
+  enable_cross_zone_load_balancing = true
+  enable_deletion_protection       = false
 
   tags = merge(
     local.common_tags,

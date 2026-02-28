@@ -9,6 +9,7 @@ module "instance_profile" {
 }
 
 # Combined permissions policy document
+# checkov:skip=CKV_AWS_356:DescribeAutoScalingInstances, DescribeInstances, and DescribeTags do not support resource-level permissions
 data "aws_iam_policy_document" "percona" {
   # DynamoDB access (locks and topology)
   statement {
@@ -50,8 +51,17 @@ data "aws_iam_policy_document" "percona" {
     actions = [
       "autoscaling:SetInstanceProtection",
       "autoscaling:SetInstanceHealth",
-      "autoscaling:DescribeAutoScalingInstances",
       "autoscaling:CancelInstanceRefresh",
+    ]
+    resources = [aws_autoscaling_group.percona.arn]
+  }
+
+  # Auto Scaling describe (not restrictable to specific resources)
+  statement {
+    sid    = "AutoScalingDescribe"
+    effect = "Allow"
+    actions = [
+      "autoscaling:DescribeAutoScalingInstances",
     ]
     resources = ["*"]
   }
