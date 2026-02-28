@@ -1,0 +1,45 @@
+# Checkov configuration for terraform-aws-percona-server module
+
+framework:
+  - terraform
+
+skip-path:
+  - test_data
+
+skip-check:
+  # CKV_TF_1: Module sources use version pins from private registry (registry.infrahouse.com)
+  # InfraHouse standard: exact version pinning from registry.infrahouse.com,
+  # which provides better maintainability than commit hash pinning.
+  # Renovate manages version updates via individual PRs for explicit review.
+  - CKV_TF_1
+
+  # CKV_AWS_150: NLB deletion protection disabled for Terraform manageability
+  # Internal NLB for Percona cluster - deletion protection prevents terraform destroy
+  # and complicates dev/test environment cleanup. Production environments should use
+  # AWS SCPs/IAM policies for deletion protection at the account level.
+  - CKV_AWS_150
+
+  # CKV_AWS_91: NLB access logs not enabled
+  # Internal NLB is Layer 4 TCP passthrough - logs only show TCP connection metadata.
+  # MySQL audit logs and VPC Flow Logs provide actual compliance data.
+  # NLB access logs would be redundant with no additional security value.
+  - CKV_AWS_91
+
+  # CKV_AWS_119: DynamoDB table uses AWS-owned encryption instead of CMK
+  # The table stores only operational metadata: distributed locks, replication topology,
+  # and GTID positions. No sensitive data, PII, or credentials.
+  # AWS-managed encryption is the InfraHouse standard (CMK only for CloudTrail).
+  - CKV_AWS_119
+
+  # CKV_AWS_158: CloudWatch Logs use AWS-managed encryption
+  # AWS-managed encryption at rest is the InfraHouse standard.
+  # CMK is only required for CloudTrail per security policy.
+  - CKV_AWS_158
+
+  # CKV_AWS_277: ICMP allowed from VPC CIDR for network troubleshooting
+  # ICMP on the internal security group enables ping/traceroute for diagnosing
+  # connectivity issues between Percona nodes and clients within the VPC.
+  - CKV_AWS_277
+
+compact: true
+quiet: false

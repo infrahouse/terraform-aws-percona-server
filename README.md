@@ -252,7 +252,7 @@ mysql -u root
 | Name | Source | Version |
 |------|--------|---------|
 | <a name="module_backups"></a> [backups](#module\_backups) | registry.infrahouse.com/infrahouse/s3-bucket/aws | 0.3.1 |
-| <a name="module_cloud_init"></a> [cloud\_init](#module\_cloud\_init) | registry.infrahouse.com/infrahouse/cloud-init/aws | 2.2.2 |
+| <a name="module_cloud_init"></a> [cloud\_init](#module\_cloud\_init) | registry.infrahouse.com/infrahouse/cloud-init/aws | 2.2.3 |
 | <a name="module_instance_profile"></a> [instance\_profile](#module\_instance\_profile) | registry.infrahouse.com/infrahouse/instance-profile/aws | 1.9.0 |
 | <a name="module_luks_passphrase"></a> [luks\_passphrase](#module\_luks\_passphrase) | registry.infrahouse.com/infrahouse/secret/aws | 1.1.1 |
 | <a name="module_mysql_credentials"></a> [mysql\_credentials](#module\_mysql\_credentials) | registry.infrahouse.com/infrahouse/secret/aws | 1.1.1 |
