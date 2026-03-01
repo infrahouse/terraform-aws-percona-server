@@ -9,7 +9,7 @@ module "instance_profile" {
 }
 
 # Combined permissions policy document
-# checkov:skip=CKV_AWS_356:DescribeAutoScalingInstances, DescribeInstances, and DescribeTags do not support resource-level permissions
+# checkov:skip=CKV_AWS_356:DescribeAutoScalingInstances, DescribeInstances, DescribeTags, and GetCommandInvocation do not support resource-level permissions
 data "aws_iam_policy_document" "percona" {
   # DynamoDB access (locks and topology)
   statement {
@@ -53,7 +53,7 @@ data "aws_iam_policy_document" "percona" {
       "autoscaling:SetInstanceHealth",
       "autoscaling:CancelInstanceRefresh",
     ]
-    resources = [aws_autoscaling_group.percona.arn]
+    resources = [local.asg_arn_pattern]
   }
 
   # Auto Scaling describe (not restrictable to specific resources)
@@ -88,6 +88,61 @@ data "aws_iam_policy_document" "percona" {
     actions = [
       "ec2:DescribeInstances",
       "ec2:DescribeTags",
+    ]
+    resources = ["*"]
+  }
+
+  # EC2 tagging (instances tag themselves for role discovery)
+  statement {
+    sid    = "EC2CreateTags"
+    effect = "Allow"
+    actions = [
+      "ec2:CreateTags",
+    ]
+    resources = [
+      "arn:aws:ec2:${data.aws_region.current.name}:${data.aws_caller_identity.current.account_id}:instance/*",
+    ]
+    condition {
+      test     = "StringEquals"
+      variable = "aws:ResourceTag/cluster_id"
+      values   = [var.cluster_id]
+    }
+  }
+
+  # SSM (send commands to cluster instances for coordination)
+  statement {
+    sid    = "SSMSendCommand"
+    effect = "Allow"
+    actions = [
+      "ssm:SendCommand",
+    ]
+    resources = [
+      "arn:aws:ec2:${data.aws_region.current.name}:${data.aws_caller_identity.current.account_id}:instance/*",
+    ]
+    condition {
+      test     = "StringEquals"
+      variable = "aws:ResourceTag/cluster_id"
+      values   = [var.cluster_id]
+    }
+  }
+
+  statement {
+    sid    = "SSMSendCommandDocument"
+    effect = "Allow"
+    actions = [
+      "ssm:SendCommand",
+    ]
+    resources = [
+      "arn:aws:ssm:${data.aws_region.current.name}::document/AWS-RunShellScript",
+    ]
+  }
+
+  # SSM GetCommandInvocation does not support resource-level permissions
+  statement {
+    sid    = "SSMGetCommandInvocation"
+    effect = "Allow"
+    actions = [
+      "ssm:GetCommandInvocation",
     ]
     resources = ["*"]
   }

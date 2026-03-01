@@ -40,7 +40,6 @@ def test_module(
     - S3 bucket is created
     """
     subnet_private_ids = service_network["subnet_private_ids"]["value"]
-    internet_gateway_id = service_network["internet_gateway_id"]["value"]
 
     terraform_module_dir = osp.join(TERRAFORM_ROOT_DIR, "percona-server")
 
