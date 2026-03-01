@@ -3,6 +3,18 @@ locals {
 
   name_prefix = "percona-${var.cluster_id}"
 
+  # Constructed ARN pattern for the ASG to avoid a dependency cycle:
+  # The IAM policy doc cannot reference aws_autoscaling_group.percona.arn
+  # because instance_profile depends on the policy, and ASG depends on instance_profile.
+  asg_arn_pattern = join(":", [
+    "arn",
+    "aws",
+    "autoscaling",
+    data.aws_region.current.name,
+    data.aws_caller_identity.current.account_id,
+    "autoScalingGroup:*:autoScalingGroupName/${local.name_prefix}-*",
+  ])
+
   lts_codenames = ["noble"]
 
   ami_name_pattern = contains(local.lts_codenames, var.ubuntu_codename) ? (
