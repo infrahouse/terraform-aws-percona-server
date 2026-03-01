@@ -4,7 +4,8 @@ locals {
   # DescribeTable is called with empty TableName when name depends on
   # an unknown value like random_pet.id.
   # See: https://github.com/hashicorp/terraform-provider-aws/issues/46016
-  cluster_id = "test-percona"
+  cluster_id    = "test-percona"
+  app_user_name = "app_${random_pet.app_user.id}"
 }
 
 resource "aws_key_pair" "test" {
@@ -23,3 +24,11 @@ module "percona-server" {
   s3_force_destroy = true
   key_name         = aws_key_pair.test.key_name
 }
+
+# Application user for integration testing
+resource "random_password" "app_user" {
+  length  = 32
+  special = false
+}
+
+resource "random_pet" "app_user" {}
