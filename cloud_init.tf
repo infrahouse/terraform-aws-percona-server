@@ -26,6 +26,7 @@ module "cloud_init" {
           storage_size       = local.use_instance_store ? local.instance_store_size : var.root_volume_size
           credentials_secret = module.mysql_credentials.secret_name
           vpc_cidr           = data.aws_vpc.selected.cidr_block
+          server_version     = var.percona_server_version != null ? var.percona_server_version : ""
         },
         lookup(var.puppet_custom_facts, "percona", {})
       )

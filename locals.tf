@@ -67,5 +67,6 @@ locals {
     "percona:storage_size_gb" = local.use_instance_store ? local.instance_store_size : var.root_volume_size
     "percona:storage_count"   = local.instance_store_count
     "percona:luks_key_arn"    = local.use_instance_store ? module.luks_passphrase[0].secret_arn : ""
+    "percona:server_version"  = var.percona_server_version != null ? var.percona_server_version : ""
   }
 }
