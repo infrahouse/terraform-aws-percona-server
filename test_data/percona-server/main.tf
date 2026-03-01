@@ -16,13 +16,14 @@ resource "aws_key_pair" "test" {
 module "percona-server" {
   source = "../.."
 
-  cluster_id       = local.cluster_id
-  environment      = local.environment
-  subnet_ids       = var.subnet_ids
-  instance_count   = 3
-  instance_type    = "t3.medium"
-  s3_force_destroy = true
-  key_name         = aws_key_pair.test.key_name
+  cluster_id             = local.cluster_id
+  environment            = local.environment
+  subnet_ids             = var.subnet_ids
+  instance_count         = 3
+  instance_type          = "t3.medium"
+  s3_force_destroy       = true
+  key_name               = aws_key_pair.test.key_name
+  percona_server_version = var.percona_server_version
 }
 
 # Application user for integration testing

@@ -13,3 +13,9 @@ variable "subnet_ids" {
   description = "List of subnet IDs for the cluster"
   type        = list(string)
 }
+
+variable "percona_server_version" {
+  description = "Percona Server version to install"
+  type        = string
+  default     = null
+}

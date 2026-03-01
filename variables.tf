@@ -111,6 +111,31 @@ variable "client_cidrs" {
   default     = []
 }
 
+variable "percona_server_version" {
+  description = <<-EOT
+    Percona Server version to install. Controls both repo selection and package pinning.
+      - null: latest 8.0 (default, current LTS)
+      - "latest": latest 8.4 (innovation/LTS track)
+      - "8.0.45-36": pin to specific 8.0 (short form, from Percona release notes)
+      - "8.4.7-7": pin to specific 8.4 (short form, from Percona release notes)
+      - "8.0.45-36-1.noble": full apt version string (also accepted)
+    The short form is recommended — Puppet appends the "-1.{codename}" suffix automatically.
+    Changing this triggers ASG instance refresh for safe rolling upgrades.
+  EOT
+  type        = string
+  default     = null
+
+  validation {
+    condition = var.percona_server_version == null ? true : can(
+      regex("^(latest|8\\.[04]\\..+)$", var.percona_server_version)
+    )
+    error_message = <<-EOM
+      percona_server_version must be null, "latest", or a version starting with "8.0." or "8.4.".
+      Use the version from Percona release notes, e.g. "8.0.45-36" or "8.4.7-7".
+    EOM
+  }
+}
+
 variable "puppet_role" {
   description = <<-EOT
     Puppet role for the Percona instances. Passed as a puppet fact.

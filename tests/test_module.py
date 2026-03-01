@@ -94,6 +94,11 @@ def find_master(asg: ASG) -> ASGInstance:
 @pytest.mark.parametrize(
     "aws_provider_version", ["~> 5.62", "~> 6.0"], ids=["aws-5", "aws-6"]
 )
+@pytest.mark.parametrize(
+    "percona_server_version",
+    [None, "8.4.7-7"],
+    ids=["percona-8.0", "percona-8.4"],
+)
 def test_module(
     service_network,
     jumphost,
@@ -101,6 +106,7 @@ def test_module(
     keep_after,
     aws_region,
     aws_provider_version,
+    percona_server_version,
 ):
     """
     Test the Percona Server module end-to-end.
@@ -170,6 +176,14 @@ def test_module(
                 """
                 )
             )
+        if percona_server_version is not None:
+            fp.write(
+                dedent(
+                    f"""
+                percona_server_version = "{percona_server_version}"
+                """
+                )
+            )
 
     with terraform_apply(
         terraform_module_dir,
@@ -207,7 +221,7 @@ def test_module(
         LOG.info("Creating application user '%s' on master...", app_user)
         exit_code, cout, cerr = master.execute_command(
             f'sudo mysql -u root -e "'
-            f"CREATE USER '{app_user}'@'%' IDENTIFIED BY '{app_password}';"
+            f"CREATE USER IF NOT EXISTS '{app_user}'@'%' IDENTIFIED BY '{app_password}';"
             f"GRANT ALL ON sakila.* TO '{app_user}'@'%';"
             f"FLUSH PRIVILEGES;"
             f'"'
@@ -220,8 +234,9 @@ def test_module(
         LOG.info("Loading Sakila database on master...")
         exit_code, cout, cerr = master.execute_command(
             "cd /tmp && "
-            "wget -q https://downloads.mysql.com/docs/sakila-db.tar.gz && "
+            "wget -qN https://downloads.mysql.com/docs/sakila-db.tar.gz && "
             "tar xzf sakila-db.tar.gz && "
+            "sudo mysql -u root -e 'DROP DATABASE IF EXISTS sakila' && "
             "sudo mysql -u root < sakila-db/sakila-schema.sql && "
             "sudo mysql -u root < sakila-db/sakila-data.sql",
             execution_timeout=120,

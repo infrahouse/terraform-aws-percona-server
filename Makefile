@@ -45,7 +45,7 @@ test-keep:  ## Run a test and keep resources
 	pytest -xvvs \
 		--aws-region=${TEST_REGION} \
 		--test-role-arn=${TEST_ROLE} \
-		-k $(TEST_SELECTOR) \
+		-k "$(TEST_SELECTOR)" \
 		--keep-after \
 		tests/test_module.py 2>&1 | tee pytest-$(shell date +%Y%m%d-%H%M%S)-output.log
 
@@ -54,7 +54,7 @@ test-clean:  ## Run a test and destroy resources
 	pytest -xvvs \
 		--aws-region=${TEST_REGION} \
 		--test-role-arn=${TEST_ROLE} \
-		-k $(TEST_SELECTOR) \
+		-k "$(TEST_SELECTOR)" \
 		tests/test_module.py 2>&1 | tee pytest-$(shell date +%Y%m%d-%H%M%S)-output.log
 
 .PHONY: clean
