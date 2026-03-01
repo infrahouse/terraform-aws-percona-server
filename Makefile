@@ -141,9 +141,9 @@ define do_release
 			echo "Updating CHANGELOG.md with git-cliff..."; \
 			git cliff --unreleased --tag $$NEW_VERSION --prepend CHANGELOG.md; \
 			git add CHANGELOG.md; \
-			git commit -m "chore: update CHANGELOG for $$NEW_VERSION"; \
+			git commit -m "chore: update CHANGELOG for $$NEW_VERSION" || exit 1; \
 			echo "Bumping version with bumpversion..."; \
-			bumpversion --new-version $$NEW_VERSION --message "chore: bump version to {new_version}" patch; \
+			bumpversion --new-version $$NEW_VERSION --message "chore: bump version to {new_version}" patch || exit 1; \
 			echo ""; \
 			echo "Released version $$NEW_VERSION"; \
 			echo ""; \
