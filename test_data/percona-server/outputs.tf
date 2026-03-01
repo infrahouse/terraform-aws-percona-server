@@ -27,3 +27,19 @@ output "s3_bucket_name" {
   description = "Name of the S3 bucket for backups"
   value       = module.percona-server.s3_bucket_name
 }
+
+output "mysql_credentials_secret_name" {
+  description = "Name of the MySQL credentials secret"
+  value       = module.percona-server.mysql_credentials_secret_name
+}
+
+output "app_user_name" {
+  description = "Application MySQL username for testing"
+  value       = local.app_user_name
+}
+
+output "app_user_password" {
+  description = "Application MySQL password for testing"
+  value       = random_password.app_user.result
+  sensitive   = true
+}
