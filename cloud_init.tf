@@ -48,4 +48,16 @@ module "cloud_init" {
   # all nodes with empty/broken instances. This setting ensures the refresh
   # stops on first failure, preserving the remaining healthy nodes with data.
   cancel_instance_refresh_on_error = true
+  gzip_userdata                    = true
+  extra_files = [
+    {
+      content     = file("${path.module}/scripts/raft-join.sh")
+      path        = "/usr/local/bin/raft-join.sh"
+      permissions = "0755"
+    },
+  ]
+
+  post_runcmd = [
+    "/usr/local/bin/raft-join.sh",
+  ]
 }

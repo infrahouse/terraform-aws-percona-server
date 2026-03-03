@@ -1,0 +1,192 @@
+diff --git a/Makefile b/Makefile
+index e3126ff..257457c 100755
+--- a/Makefile
++++ b/Makefile
+@@ -45,7 +45,7 @@ test-keep:  ## Run a test and keep resources
+ 	pytest -xvvs \
+ 		--aws-region=${TEST_REGION} \
+ 		--test-role-arn=${TEST_ROLE} \
+-		-k $(TEST_SELECTOR) \
++		-k "$(TEST_SELECTOR)" \
+ 		--keep-after \
+ 		tests/test_module.py 2>&1 | tee pytest-$(shell date +%Y%m%d-%H%M%S)-output.log
+ 
+@@ -54,7 +54,7 @@ test-clean:  ## Run a test and destroy resources
+ 	pytest -xvvs \
+ 		--aws-region=${TEST_REGION} \
+ 		--test-role-arn=${TEST_ROLE} \
+-		-k $(TEST_SELECTOR) \
++		-k "$(TEST_SELECTOR)" \
+ 		tests/test_module.py 2>&1 | tee pytest-$(shell date +%Y%m%d-%H%M%S)-output.log
+ 
+ .PHONY: clean
+diff --git a/README.md b/README.md
+index e9cdb2b..08421a7 100755
+--- a/README.md
++++ b/README.md
+@@ -307,6 +307,7 @@ mysql -u root
+ | <a name="input_instance_count"></a> [instance\_count](#input\_instance\_count) | Number of instances in the cluster (must be odd, minimum 3) | `number` | `3` | no |
+ | <a name="input_instance_type"></a> [instance\_type](#input\_instance\_type) | EC2 instance type for the Percona nodes | `string` | `"t3.medium"` | no |
+ | <a name="input_key_name"></a> [key\_name](#input\_key\_name) | Name of the EC2 key pair for SSH access to instances. If null, no key pair is assigned. | `string` | `null` | no |
++| <a name="input_percona_server_version"></a> [percona\_server\_version](#input\_percona\_server\_version) | Percona Server version to install. Controls both repo selection and package pinning.<br/>  - null: latest 8.0 (default, current LTS)<br/>  - "latest": latest 8.4 (innovation/LTS track)<br/>  - "8.0.45-36": pin to specific 8.0 (short form, from Percona release notes)<br/>  - "8.4.7-7": pin to specific 8.4 (short form, from Percona release notes)<br/>  - "8.0.45-36-1.noble": full apt version string (also accepted)<br/>The short form is recommended — Puppet appends the "-1.{codename}" suffix automatically.<br/>Changing this triggers ASG instance refresh for safe rolling upgrades. | `string` | `null` | no |
+ | <a name="input_puppet_custom_facts"></a> [puppet\_custom\_facts](#input\_puppet\_custom\_facts) | A map of custom puppet facts. The module uses deep merge to combine user facts<br/>with module-managed facts. User-provided values take precedence on conflicts.<br/><br/>Module automatically provides percona-specific facts for cluster configuration. | `any` | `{}` | no |
+ | <a name="input_puppet_debug_logging"></a> [puppet\_debug\_logging](#input\_puppet\_debug\_logging) | Enable Puppet debug logging during bootstrap. | `bool` | `false` | no |
+ | <a name="input_puppet_environmentpath"></a> [puppet\_environmentpath](#input\_puppet\_environmentpath) | A path for directory environments. | `string` | `"{root_directory}/environments"` | no |
+diff --git a/cloud_init.tf b/cloud_init.tf
+index 723b614..5d76c98 100644
+--- a/cloud_init.tf
++++ b/cloud_init.tf
+@@ -26,6 +26,7 @@ module "cloud_init" {
+           storage_size       = local.use_instance_store ? local.instance_store_size : var.root_volume_size
+           credentials_secret = module.mysql_credentials.secret_name
+           vpc_cidr           = data.aws_vpc.selected.cidr_block
++          server_version     = var.percona_server_version != null ? var.percona_server_version : ""
+         },
+         lookup(var.puppet_custom_facts, "percona", {})
+       )
+diff --git a/locals.tf b/locals.tf
+index 2a2c3a9..a7d499a 100755
+--- a/locals.tf
++++ b/locals.tf
+@@ -67,5 +67,6 @@ locals {
+     "percona:storage_size_gb" = local.use_instance_store ? local.instance_store_size : var.root_volume_size
+     "percona:storage_count"   = local.instance_store_count
+     "percona:luks_key_arn"    = local.use_instance_store ? module.luks_passphrase[0].secret_arn : ""
++    "percona:server_version"  = var.percona_server_version != null ? var.percona_server_version : ""
+   }
+ }
+diff --git a/test_data/percona-server/main.tf b/test_data/percona-server/main.tf
+index 72e77b9..9bb0e1b 100755
+--- a/test_data/percona-server/main.tf
++++ b/test_data/percona-server/main.tf
+@@ -16,13 +16,14 @@ resource "aws_key_pair" "test" {
+ module "percona-server" {
+   source = "../.."
+ 
+-  cluster_id       = local.cluster_id
+-  environment      = local.environment
+-  subnet_ids       = var.subnet_ids
+-  instance_count   = 3
+-  instance_type    = "t3.medium"
+-  s3_force_destroy = true
+-  key_name         = aws_key_pair.test.key_name
++  cluster_id             = local.cluster_id
++  environment            = local.environment
++  subnet_ids             = var.subnet_ids
++  instance_count         = 3
++  instance_type          = "t3.medium"
++  s3_force_destroy       = true
++  key_name               = aws_key_pair.test.key_name
++  percona_server_version = var.percona_server_version
+ }
+ 
+ # Application user for integration testing
+diff --git a/test_data/percona-server/variables.tf b/test_data/percona-server/variables.tf
+index c0685c3..18181ad 100755
+--- a/test_data/percona-server/variables.tf
++++ b/test_data/percona-server/variables.tf
+@@ -13,3 +13,9 @@ variable "subnet_ids" {
+   description = "List of subnet IDs for the cluster"
+   type        = list(string)
+ }
++
++variable "percona_server_version" {
++  description = "Percona Server version to install"
++  type        = string
++  default     = null
++}
+diff --git a/tests/test_module.py b/tests/test_module.py
+index aa7a764..ab2d5b8 100755
+--- a/tests/test_module.py
++++ b/tests/test_module.py
+@@ -94,6 +94,11 @@ def find_master(asg: ASG) -> ASGInstance:
+ @pytest.mark.parametrize(
+     "aws_provider_version", ["~> 5.62", "~> 6.0"], ids=["aws-5", "aws-6"]
+ )
++@pytest.mark.parametrize(
++    "percona_server_version",
++    [None, "8.4.7-7"],
++    ids=["percona-8.0", "percona-8.4"],
++)
+ def test_module(
+     service_network,
+     jumphost,
+@@ -101,6 +106,7 @@ def test_module(
+     keep_after,
+     aws_region,
+     aws_provider_version,
++    percona_server_version,
+ ):
+     """
+     Test the Percona Server module end-to-end.
+@@ -170,6 +176,14 @@ def test_module(
+                 """
+                 )
+             )
++        if percona_server_version is not None:
++            fp.write(
++                dedent(
++                    f"""
++                percona_server_version = "{percona_server_version}"
++                """
++                )
++            )
+ 
+     with terraform_apply(
+         terraform_module_dir,
+@@ -207,7 +221,7 @@ def test_module(
+         LOG.info("Creating application user '%s' on master...", app_user)
+         exit_code, cout, cerr = master.execute_command(
+             f'sudo mysql -u root -e "'
+-            f"CREATE USER '{app_user}'@'%' IDENTIFIED BY '{app_password}';"
++            f"CREATE USER IF NOT EXISTS '{app_user}'@'%' IDENTIFIED BY '{app_password}';"
+             f"GRANT ALL ON sakila.* TO '{app_user}'@'%';"
+             f"FLUSH PRIVILEGES;"
+             f'"'
+@@ -220,8 +234,9 @@ def test_module(
+         LOG.info("Loading Sakila database on master...")
+         exit_code, cout, cerr = master.execute_command(
+             "cd /tmp && "
+-            "wget -q https://downloads.mysql.com/docs/sakila-db.tar.gz && "
++            "wget -qN https://downloads.mysql.com/docs/sakila-db.tar.gz && "
+             "tar xzf sakila-db.tar.gz && "
++            "sudo mysql -u root -e 'DROP DATABASE IF EXISTS sakila' && "
+             "sudo mysql -u root < sakila-db/sakila-schema.sql && "
+             "sudo mysql -u root < sakila-db/sakila-data.sql",
+             execution_timeout=120,
+diff --git a/variables.tf b/variables.tf
+index 736d5f8..ba6dac7 100755
+--- a/variables.tf
++++ b/variables.tf
+@@ -111,6 +111,31 @@ variable "client_cidrs" {
+   default     = []
+ }
+ 
++variable "percona_server_version" {
++  description = <<-EOT
++    Percona Server version to install. Controls both repo selection and package pinning.
++      - null: latest 8.0 (default, current LTS)
++      - "latest": latest 8.4 (innovation/LTS track)
++      - "8.0.45-36": pin to specific 8.0 (short form, from Percona release notes)
++      - "8.4.7-7": pin to specific 8.4 (short form, from Percona release notes)
++      - "8.0.45-36-1.noble": full apt version string (also accepted)
++    The short form is recommended — Puppet appends the "-1.{codename}" suffix automatically.
++    Changing this triggers ASG instance refresh for safe rolling upgrades.
++  EOT
++  type        = string
++  default     = null
++
++  validation {
++    condition = var.percona_server_version == null ? true : can(
++      regex("^(latest|8\\.[04]\\..+)$", var.percona_server_version)
++    )
++    error_message = <<-EOM
++      percona_server_version must be null, "latest", or a version starting with "8.0." or "8.4.".
++      Use the version from Percona release notes, e.g. "8.0.45-36" or "8.4.7-7".
++    EOM
++  }
++}
++
+ variable "puppet_role" {
+   description = <<-EOT
+     Puppet role for the Percona instances. Passed as a puppet fact.

@@ -44,6 +44,11 @@ resource "random_password" "mysql_monitor" {
   special = false
 }
 
+resource "random_password" "mysql_orchestrator" {
+  length  = 32
+  special = false
+}
+
 module "mysql_credentials" {
   source             = "registry.infrahouse.com/infrahouse/secret/aws"
   version            = "1.1.1"
@@ -51,10 +56,11 @@ module "mysql_credentials" {
   secret_description = "MySQL credentials for Percona cluster ${var.cluster_id}"
   secret_name_prefix = "${var.cluster_id}/mysql-credentials-"
   secret_value = jsonencode({
-    root        = random_password.mysql_root.result
-    replication = random_password.mysql_replication.result
-    backup      = random_password.mysql_backup.result
-    monitor     = random_password.mysql_monitor.result
+    root         = random_password.mysql_root.result
+    replication  = random_password.mysql_replication.result
+    backup       = random_password.mysql_backup.result
+    monitor      = random_password.mysql_monitor.result
+    orchestrator = random_password.mysql_orchestrator.result
   })
   tags = local.common_tags
   readers = [
