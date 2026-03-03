@@ -17,6 +17,23 @@ All notable changes to this project will be documented in this file.
 
 - Fix & ignore local reviews
 - Skip CKV2_AWS_5 for Lambda security group attached via module
+- Update CHANGELOG for 0.4.0
+
+## [0.4.0] - 2026-03-03
+
+### Documentation
+
+- Update docs with Orchestrator, lifecycle hooks, and tested scenarios
+
+### Features
+
+- Add percona_server_version variable for version control
+- Add Raft lifecycle hooks for Orchestrator peer management
+
+### Miscellaneous Tasks
+
+- Fix & ignore local reviews
+- Skip CKV2_AWS_5 for Lambda security group attached via module
 
 ## [0.3.0] - 2026-03-01
 
