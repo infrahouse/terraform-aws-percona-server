@@ -91,7 +91,7 @@ Stores sensitive credentials:
 
 | Secret | Contents |
 |--------|----------|
-| `{cluster_id}/mysql-credentials` | root, replication, backup, monitor passwords |
+| `{cluster_id}/mysql-credentials` | root, replication, backup, monitor, orchestrator passwords |
 | `{cluster_id}-luks-*` | LUKS passphrase (instance store only) |
 
 ### Security Groups
@@ -196,21 +196,67 @@ Example: bf30f9b7-f4de-11f0-8310-06ed89e4c4bd:1-13
 - **RO**: Read-Only (replicas)
 - **TG**: Target Group (write for master, read for replicas)
 
-## High Availability
+## Orchestrator
 
-### Current Implementation
+[Orchestrator](https://github.com/openark/orchestrator) runs on every cluster node
+and manages topology detection, automated failover, and graceful switchover.
+
+### Raft Consensus
+
+Orchestrator nodes form a Raft cluster for leader election:
+
+- Raft port: 10008 (inter-node consensus)
+- HTTP port: 3000 (API and Web UI)
+- The Raft leader coordinates failover decisions
+- Quorum requires a majority of nodes (e.g., 2 of 3)
+
+### Automated Failover
+
+When the master fails, Orchestrator:
+
+1. Detects `DeadMaster` (~10s detection interval)
+2. Elects a replica with the most up-to-date GTID set
+3. Promotes the replica to master (sets `read_only=OFF`)
+4. Executes post-failover hooks:
+    - Updates NLB write target group to point to new master
+    - Enables scale-in protection on new master
+    - Updates DynamoDB topology
+    - Updates EC2 `mysql_role` tags
+5. Remaining replicas re-point to the new master via GTID
+
+**Total failover time: ~11 seconds** from instance failure to new master promotion.
+
+### ASG Lifecycle Hooks
+
+Lambda-based Raft peer management ensures clean cluster membership:
+
+- **Terminate hook**: Lambda compares Raft peers against live ASG instances,
+  removes stale peers from the leader
+- **Launch hook**: New instance joins Raft after Puppet bootstrap via
+  `raft-join.sh`, which discovers the leader and cleans up any remaining
+  stale peers
+- Events routed via EventBridge to the Lambda function
+
+### Graceful Switchover
+
+For planned maintenance, use:
+
+```bash
+orchestrator-client -c graceful-master-takeover -d <target-replica-hostname>
+```
+
+This performs a zero-downtime master switch. The old master is left with
+replication stopped (downtimed) — start it manually with
+`orchestrator-client -c start-replica -i <old-master-hostname>`.
+
+## High Availability
 
 - GTID replication ensures data consistency
 - NLB health checks detect failures quickly (10s interval)
 - Target group deregistration delay: 30s for fast failover
-- Manual failover by updating target group registrations
-
-### Planned (Orchestrator)
-
-- Automatic topology detection
-- Automated failover with configurable policies
-- Raft consensus for HA Orchestrator cluster
-- Web UI for monitoring and manual operations
+- Orchestrator automated failover with DeadMaster detection (~11s)
+- Graceful switchover for planned maintenance (instant, zero downtime)
+- ASG self-healing replaces terminated instances automatically
 
 ## Security
 
