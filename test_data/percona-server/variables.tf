@@ -19,3 +19,9 @@ variable "percona_server_version" {
   type        = string
   default     = null
 }
+
+variable "alarm_emails" {
+  description = "Email addresses for Lambda monitoring alarms"
+  type        = list(string)
+  default     = ["aleks+terraform-aws-percona-server@infrahouse.com"]
+}

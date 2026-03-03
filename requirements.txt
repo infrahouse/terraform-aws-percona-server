@@ -1,5 +1,5 @@
 pytest-infrahouse ~= 0.23
-infrahouse-core ~= 0.19
+infrahouse-core ~= 0.23
 
 # Documentation dependencies
 mkdocs-material ~= 9.7

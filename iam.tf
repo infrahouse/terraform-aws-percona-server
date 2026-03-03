@@ -44,7 +44,7 @@ data "aws_iam_policy_document" "percona" {
     ]
   }
 
-  # Auto Scaling (scale-in protection, custom health checks, instance refresh control)
+  # Auto Scaling (scale-in protection, health checks, instance refresh, lifecycle hooks)
   statement {
     sid    = "AutoScaling"
     effect = "Allow"
@@ -52,6 +52,7 @@ data "aws_iam_policy_document" "percona" {
       "autoscaling:SetInstanceProtection",
       "autoscaling:SetInstanceHealth",
       "autoscaling:CancelInstanceRefresh",
+      "autoscaling:CompleteLifecycleAction",
     ]
     resources = [local.asg_arn_pattern]
   }
@@ -61,6 +62,7 @@ data "aws_iam_policy_document" "percona" {
     sid    = "AutoScalingDescribe"
     effect = "Allow"
     actions = [
+      "autoscaling:DescribeAutoScalingGroups",
       "autoscaling:DescribeAutoScalingInstances",
     ]
     resources = ["*"]

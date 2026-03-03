@@ -24,6 +24,7 @@ module "percona-server" {
   s3_force_destroy       = true
   key_name               = aws_key_pair.test.key_name
   percona_server_version = var.percona_server_version
+  alarm_emails           = var.alarm_emails
 }
 
 # Application user for integration testing

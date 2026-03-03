@@ -208,3 +208,8 @@ variable "key_name" {
   type        = string
   default     = null
 }
+
+variable "alarm_emails" {
+  description = "Email addresses for Lambda monitoring alarms (Raft lifecycle hooks)."
+  type        = list(string)
+}
