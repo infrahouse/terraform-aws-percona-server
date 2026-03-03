@@ -6,3 +6,4 @@
 /.terraform/
 __pycache__
 .build
+.claude/reviews/
