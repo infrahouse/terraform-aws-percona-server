@@ -41,5 +41,11 @@ skip-check:
   # connectivity issues between Percona nodes and clients within the VPC.
   - CKV_AWS_277
 
+  # CKV2_AWS_5: Security group attached via module reference
+  # aws_security_group.raft_lambda is passed to module.raft_lifecycle via
+  # lambda_security_group_ids. Checkov cannot trace references through
+  # module boundaries.
+  - CKV2_AWS_5
+
 compact: true
 quiet: false
