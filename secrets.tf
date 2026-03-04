@@ -63,7 +63,8 @@ module "mysql_credentials" {
     orchestrator = random_password.mysql_orchestrator.result
   })
   tags = local.common_tags
-  readers = [
-    module.instance_profile.instance_role_arn
-  ]
+  readers = concat(
+    [module.instance_profile.instance_role_arn],
+    var.credentials_secret_readers
+  )
 }

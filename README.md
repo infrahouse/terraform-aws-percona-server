@@ -314,6 +314,7 @@ mysql -u root
 | <a name="input_client_cidrs"></a> [client\_cidrs](#input\_client\_cidrs) | List of CIDR blocks allowed to connect to MySQL. If both this and client\_security\_group\_ids are empty, VPC CIDR is used. | `list(string)` | `[]` | no |
 | <a name="input_client_security_group_ids"></a> [client\_security\_group\_ids](#input\_client\_security\_group\_ids) | List of security group IDs allowed to connect to MySQL. If both this and client\_cidrs are empty, VPC CIDR is used. | `list(string)` | `[]` | no |
 | <a name="input_cluster_id"></a> [cluster\_id](#input\_cluster\_id) | Unique identifier for the Percona cluster | `string` | n/a | yes |
+| <a name="input_credentials_secret_readers"></a> [credentials\_secret\_readers](#input\_credentials\_secret\_readers) | Additional IAM role ARNs that can read the MySQL credentials secret.<br/>Use this to grant access to external services (e.g., PMM reconciler Lambda)<br/>that need database credentials for monitoring. | `list(string)` | `[]` | no |
 | <a name="input_environment"></a> [environment](#input\_environment) | Environment name (development, staging, production, etc.) | `string` | n/a | yes |
 | <a name="input_extra_packages"></a> [extra\_packages](#input\_extra\_packages) | Additional packages to install during instance bootstrap. | `list(string)` | `[]` | no |
 | <a name="input_instance_count"></a> [instance\_count](#input\_instance\_count) | Number of instances in the cluster (must be odd, minimum 3) | `number` | `3` | no |
