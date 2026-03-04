@@ -99,6 +99,16 @@ variable "tags" {
   default     = {}
 }
 
+variable "credentials_secret_readers" {
+  description = <<-EOF
+    Additional IAM role ARNs that can read the MySQL credentials secret.
+    Use this to grant access to external services (e.g., PMM reconciler Lambda)
+    that need database credentials for monitoring.
+  EOF
+  type        = list(string)
+  default     = []
+}
+
 variable "client_security_group_ids" {
   description = "List of security group IDs allowed to connect to MySQL. If both this and client_cidrs are empty, VPC CIDR is used."
   type        = list(string)
