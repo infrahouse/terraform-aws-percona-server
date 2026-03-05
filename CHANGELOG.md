@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.6.0] - 2026-03-05
+
+### Ci
+
+- Add Terraform CD workflow to publish module on tag push
+
 ## [0.5.0] - 2026-03-04
 
 ### Features
