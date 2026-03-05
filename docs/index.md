@@ -27,7 +27,7 @@ consensus for high availability.
 ```hcl
 module "percona" {
   source  = "infrahouse/percona-server/aws"
-  version = "0.5.0"
+  version = "0.6.0"
 
   cluster_id     = "my-database"
   environment    = "production"
